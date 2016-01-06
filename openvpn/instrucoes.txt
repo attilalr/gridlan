@@ -1,0 +1,115 @@
+
+************************************************************
+Instrucoes para o procedimento de conexao vpn com o servidor
+************************************************************
+
+Servidor:
+*********
+
+* Criação das chaves e do certificado do servidor: checar o link
+https://wiki.debian.org/OpenVPN.
+
+* Para cada nó deve-se criar uma chave com o nome do nó, ela pode
+ser revogada a qualquer momento pelo servidor impedindo o acesso
+na vpn.
+
+Comando:
+/etc/openvpn/easy-rsa/build-key namenode
+
+Arquivos a serem enviados para o cliente:
+
+ca.crt, namenode.crt, grid01.csr, grid01.key
+
+* Estratégia da abertura do serviço vpn no servidor:
+
+  Resumo: criar uma bridge br0 ligando a interface da rede interna
+(eth1) à interface tap0. Dessa forma um cliente pode conectar-se
+de fora pela vpn e fazer uma requisição ao servidor dhcp do servidor
+do cluster.
+
+ Passos:
+
+ 1) Criar a interface tap0 e criar a bridge br0 conectando as intefaces
+eth1 e tap0. Para isso existe o script bridge-start.
+
+ 2) openvpn --config vpn-server.conf
+
+ Para adicionar um novo nó de cálculo ao sistema:
+
+ 1) Deve-se criar uma chave específica para o novo nó, ver o link
+https://wiki.debian.org/OpenVPN;
+
+ 2) Copiar as chaves necessárias para o cliente;
+
+ 3) Registrar o cliente no servidor dhcp (usando o endereço mac do
+cliente). Reiniciar o serviço;
+
+ 4) Registrar o cliente no arquivo /etc/hosts e /nfsroot/etc/hosts.
+
+Cliente:
+********
+
+ Passos:
+
+ 1) Criar a interface tap0. Para isso deve-se executar:
+
+ openvpn --mktun --dev tap0
+ ifconfig tap0 up
+
+ 2) openvpn --config vpn-cliente.conf --tls-client
+
+
+Questões a serem resolvidas
+******** * ***** **********
+
+ * O dhcp muitas vezes não funciona. Quando o serviço é reinicalizado no servidor
+o processo funciona.
+
+ * No cliente, instalar o openvpn e verificar a existência do módulo tun.
+Levantar o módulo tun.
+
+ * Administração das chaves emitidas para os clientes.
+
+ Procedimento automático/semi-automático para esse emissão
+em sincronia com o aplicativo no cliente.
+
+ * Utilização de um túnel ao invés de uma bridge. Aparentemente
+um túnel tem melhor desempenho que uma bridge.
+
+  Links
+  *****
+
+  http://sassan.me.uk/blog/qemu-and-openvpn-secure-and-convenient-remote-access-to-virtual-servers/
+
+*********** Do website do OpenVPN
+
+On the Linux side you must first set up ethernet bridging. Here is a configuration which I use:
+
+    #!/bin/bash
+
+    modprobe tun
+    modprobe bridge
+
+    openvpn --mktun --dev tap0
+    openvpn --mktun --dev tap1
+
+    brctl addbr br0
+    brctl addif br0 eth1
+    brctl addif br0 tap0
+    brctl addif br0 tap1
+
+    ifconfig tap0 0.0.0.0 promisc up
+    ifconfig tap1 0.0.0.0 promisc up
+    ifconfig eth1 0.0.0.0 promisc up
+
+    ifconfig br0 10.5.0.1 netmask 255.255.255.0 broadcast 10.5.0.255
+
+    # end of script
+
+This script will set up ethernet bridging between eth1, tap0, and tap1. Change the br0 ifconfig to match the ifconfig that would be used for eth1 under normal, non-bridged configuration. Use as many tapX virtual adapters as you will have remote clients connecting.
+
+In the firewall, add these entries to allow TAP devices and ethernet bridges to operate:
+
+    iptables -A INPUT -i tap+ -j ACCEPT
+    iptables -A INPUT -i br0 -j ACCEPT
+    iptables -A FORWARD -i br0 -j ACCEPT

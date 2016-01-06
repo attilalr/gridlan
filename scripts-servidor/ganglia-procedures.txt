@@ -1,0 +1,60 @@
+
+Running an aditional gmond daemon for gridlocal
+
+Supose you run a cluster server and you want this server to run the gridlocal environment too.
+The cluster server already have a gmond to gather the cluster statistics and we want now gather 
+the gridlocal data too.
+
+The answer is run another gmond daemon with a different configuration file. In this new configuration
+file we set the new name:
+
+cluster {
+  name = "Gridlocal"
+  owner = "unspecified"
+  latlong = "unspecified"
+  url = "unspecified"
+}
+
+and a new port to listen:
+
+udp_send_channel { 
+  host = hydra
+  port = 8650 
+  ttl = 6
+} 
+  
+udp_recv_channel { 
+  port = 8650 
+} 
+  
+tcp_accept_channel {
+  port = 8650 
+} 
+
+We then save the new configuration file in /etc/ganglia/gmond-gl.conf for example.
+
+The next step is create the initialization script for this new daemon. Copy the old script:
+
+cp /etc/init.d/ganglia-monitor /etc/init.d/ganglia-monitor-gridlocal
+
+Edit /etc/init.d/ganglia-monitor-gridlocal as:
+
+# Provides:          ganglia-monitor-gl
+
+DESC="Ganglia Monitor Daemon for Gridlocal"
+
+case "$1" in
+  start)
+        echo -n "Starting $DESC: "
+        start-stop-daemon --start --quiet \
+                --exec $DAEMON -- --conf /etc/ganglia/gmond-gl.conf --pid-file /var/run/$NAME.pid
+        echo "$NAME."
+        ;;
+
+
+Install the script in the proper init levels:
+
+update-rc.d ganglia-monitor-gridlocal defaults
+
+Initialization os the service: /etc/init.d/ganglia-monitor-gridlocal start
+

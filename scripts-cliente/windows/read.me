@@ -1,0 +1,131 @@
+	
+ Instruções para a instalação do gridlocal
+ *****************************************
+ 
+ Programas a serem instalados previamente:
+ 
+ OpenVPN
+ PyQt4
+ VirtualBox
+
+ criar pasta gridlocal:
+   hostname
+   chaves criptograficas vpn
+   configuração vpn
+   script gridlocal
+ 
+ Depois de instalar: instalar o arquivo node no programa do virtualbox
+ 
+ Fazer a bridge: VirtualBox Host-Only Network + tapgrid
+ 
+ Copiar o script gridlocal para a pasta dos scripts de inicialização do windows:
+ C:\Windows\System32\GroupPolicy\Machine\Scripts\Startup
+ 
+ Registrar o script no Edit Group Policy
+ 
+ Copiar os arquivos do programa de trayicon
+ 
+ Colocar a execução na inicialização dos usuários.
+ 
+
+ OpenVPN pra windows
+ ******* *** *******
+
+ https://openvpn.net/ (versão para windows)
+
+ Resta estabelecer os mesmos procedimentos do linux: 
+  
+  1) levantar uma tap6;
+  2) conectar ao servidor a partir de uma configuração.
+
+
+ Do website: https://openvpn.net/index.php/open-source/documentation/howto.html
+
+ ****
+
+ Empacotar:
+
+ http://www.advancedinstaller.com/user-guide/tutorial-simple.html
+
+ ****
+After you've run the Windows installer, OpenVPN is ready for use and will associate itself with files having the .ovpn extension. To run OpenVPN, you can:
+    Right click on an OpenVPN configuration file (.ovpn) and select Start OpenVPN on this configuration file. Once running, you can use the F4key to exit.
+    Run OpenVPN from a command prompt Window with a command such as:
+        openvpn myconfig.ovpn
+    Once running in a command prompt window, OpenVPN can be stopped by the F4 key.
+    Run OpenVPN as a service by putting one or more .ovpn configuration files in \Program Files\OpenVPN\config and starting the OpenVPN Service, which can be controlled from Start Menu -> Control Panel -> Administrative Tools -> Services.
+ ****
+
+ https://www.lisenet.com/2014/openvpn-server-and-client-setup-on-windows/
+
+ ****
+
+ Running OpenVPN as a Windows Service
+
+When OpenVPN runs as a service it will start a separate OpenVPN process for each configuration file it finds in the \Program Files\OpenVPN\config directory and will output a logfile of the same name to the \Program Files\OpenVPN\log directory.
+
+When installed as a service, OpenVPN will default to manual start mode. You can go to the "Services" control panel in Control Panel -> Administrative Tools to start the service or to set it to Automatic Start mode.
+
+A sample config file has been provided in \Program Files\OpenVPN\config\sample.ovpn.txt which can be adapted to your needs.
+Service Notes:
+
+    When you install OpenVPN as a service, you are actually installing openvpnserv.exe which is a service wrapper for OpenVPN, i.e. it reads the config file directory and starts up a separate OpenVPN process for each config file. openvpnserv.exe performs the same function under windows as the /etc/init.d/openvpn startup script does under linux.
+    When you stop the OpenVPN service, it will send a terminate signal to all OpenVPN processes which were started by it.
+    If the OpenVPN service wrapper (openvpnserv.exe) encounters fatal errors, it will write them to the windows event log, which can be viewed in Control Panel -> Administrative Tools -> Event Viewer -> Application Log.
+    If the OpenVPN processes themselves encounter errors, they will write them to their respective log files in the log file directory.
+    There is a one-to-one correspondence between an OpenVPN process, an OpenVPN config file, an OpenVPN log file, and a TAP-Win32 adapter which represents an endpoint of a VPN tunnel.
+    OpenVPN tunnels are point-to-point in their simplest form, but can be made point-to-multi-point through the use of bridging or routing (see below).
+    Multiple OpenVPN processes can run concurrently, each on a different TAP-Windows adapter.
+    openvpn.exe gets all configuration information from its config file, not from the registry.
+    The openvpnserv.exe program (the service wrapper) gets several string parameters from the registry which can be modified by the user. If you change any of these parameters, you should be able to upgrade OpenVPN to a new version without the installer overwriting your changes:
+
+    HKEY_LOCAL_MACHINE\SOFTWARE\OpenVPN
+
+    config_dir
+        configuration file directory to scan, defaults to "\Program Files\OpenVPN\config"
+    config_ext
+        file extension on configuration files, defaults to "ovpn"
+    exe_path
+        path to openvpn.exe, defaults to "\Program Files\OpenVPN\bin\openvpn.exe"
+    log_dir
+        log file directory, defaults to "\Program Files\OpenVPN\log"
+    log_append
+        if set to "1", multiple instantiations of an OpenVPN process will append onto the same log file, if set to "0" (default), each new instantiation will truncate the previous log file
+    priority
+        the windows priority class for each instantiated OpenVPN process, can be one of:
+            "IDLE_PRIORITY_CLASS"
+            "BELOW_NORMAL_PRIORITY_CLASS"
+            "NORMAL_PRIORITY_CLASS" (default)
+            "ABOVE_NORMAL_PRIORITY_CLASS"
+            "HIGH_PRIORITY_CLASS"
+
+  ****
+
+  https://community.openvpn.net/openvpn/wiki/Easy_Windows_Guide
+
+  ****
+
+Running OpenVPN as a Service
+Running OpenVPN as a service will allow:
+    OpenVPN to be run from a non-administrator account. 
+    OpenVPN to be started automatically on system startup. This is often preferred on the server machine, as well as any machines which will be constantly connected to the server. 
+    Run the Windows Service administrative tool:
+        Press Windows Key + R
+        Type "services.msc" and press Enter.
+        services.msc
+    Find the OpenVPN service, and set its Startup Type to "automatic." 
+    Optionally, start the service now. 
+
+
+ Máquina virtual - receita de sucesso
+ ************************************
+
+ * Programa utilizado com sucesso: VMWare Player.
+
+ * Foi necessário recompilar o kernel com os drivers nic VMWare.
+
+ * Deve-se criar uma bridge entre o tapgrid e uma das interfaces vmware (1 ou 8), conectar a vm a uma dessas interfaces.
+
+ * É essencial desligar o serviço dhcp da vmware (services do windows). Se ele estiver ligado o sistema pega o ip do gerenciador da máquina virtual e as montagens nfs não são feitas.
+
+ link para o vmrun: www.vmware.com/pdf/vix162_vmrun_command.pdf

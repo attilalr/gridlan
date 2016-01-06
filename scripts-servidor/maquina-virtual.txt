@@ -1,0 +1,11 @@
+
+ *** Máquina virtual no servidor ***
+
+ Seria interessante criar uma máquina virtual no servidor onde fosse
+reunidos os principais serviços, como:
+
+ * servidor ganglia para o gridlocal
+ * servidor tftp
+ * servidor ...
+
+

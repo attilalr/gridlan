@@ -1,0 +1,61 @@
+
+ ***** Comunicação entre os nós ******
+
+ Todos os nós (os nós considerados são os virtuais) conectam-se ao servidor. Logo a topologia é uma estrela.
+ Como não existe uma conexão direta entre os nós, para ocorrer comunicação
+ entre processos de nós diferentes deve existir o serviço de roteamento no servidor.
+
+
+ *** Configuração no servidor ***
+
+ A interface br0 no servidor é uma bridge da interface eth1 com a interface tap0:
+
+ br0 = eth1 (interna) + tap0 (vpn dos nós)
+
+ Para que o sistema suporte intercomunicação dos nós criamos uma interface virtual br0:gw
+ com o endereço 192.168.0.250 através do comando:
+
+ ifconfig br0:gw 192.168.0.250 netmask 255.255.255.0
+
+ Essa última interface vai atuar como gateway dos nós para os outros nós na vpn.
+
+ As linhas de comando para o iptables realizar o roteamento entre a br0:gw e a br0 são:
+
+ /sbin/iptables -t nat -A POSTROUTING -o br0:gw -j MASQUERADE
+ /sbin/iptables -A FORWARD -i br0:gw -o br0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+ /sbin/iptables -A FORWARD -i br0 -o br0:gw -j ACCEPT
+
+ *** Configuração nos clientes (nós) ***
+
+ As configurações relevantes nos clientes são:
+
+ * rota de segurança para 192.168.0.1:
+
+ route add -host 192.168.0.1 eth0
+
+ * rota para o gateway:
+
+ route add -host 192.168.0.250 eth0
+
+ * rota para o resto da rede 192.168.0.0:
+
+ route add -net 192.168.0.0 netmask 255.255.255.0 gw 192.168.0.250
+
+ A tabela de roteamento final deve ser:
+
+ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+ 192.168.0.0     192.168.0.250   255.255.255.0   UG    0      0        0 eth0
+ 192.168.0.1     0.0.0.0         255.255.255.255 UH    0      0        0 eth0
+ 192.168.0.250   0.0.0.0         255.255.255.255 UH    0      0        0 eth0
+ 192.168.122.17  192.168.0.1     255.255.255.255 UGH   0      0        0 eth0
+
+ *** Configuração permanente nos nós ***
+
+ Adicionar ao /etc/rc.local dos nós:
+
+ route add -host 192.168.0.1 eth0
+ route del -net 192.168.0.0 netmask 255.255.255.0 eth0
+ route add -host 192.168.0.250 eth0
+ route add -net 192.168.0.0 netmask 255.255.255.0 gw 192.168.0.250 #maquina virtual no servidor
+ route add -host 192.168.122.17 gw 192.168.0.1 # servidor ganglia
+

@@ -1,0 +1,16 @@
+
+  *** Torque 2.5 ***
+
+  Escolha do torque 2.15 pelo recurso:
+
+  -l procs=N (N o número de processos).
+
+  *** Inicialização no servidor ***
+
+  Executar: pbs_mom, pbs_server e pbs_sched
+
+  *** Inicialização nos nós ***
+
+  Incluir no /etc/rc.local
+
+  pbs_mom  

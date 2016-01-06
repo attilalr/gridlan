@@ -1,0 +1,82 @@
+#! /bin/sh
+# /etc/init.d/gridlocal
+#
+
+# pra instalar o script
+# cp levantartap6 /etc/init.d/
+# chmod 755 /etc/init.d/levantartap6
+# update-rc.d levantartap6 defaults
+
+### BEGIN INIT INFO
+# Provides:          gridlocal
+# Required-Start:    libvirt-bin
+# Required-Stop:     
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Daemon do gridlocal
+# Description:       Enable service provided by daemon.
+### END INIT INFO
+
+# Some things that run always
+touch /var/lock/gridlocal
+
+# Carry out specific functions when asked to by the system
+case "$1" in
+  start)
+    echo "Criando a interface tap6 "
+    openvpn --mktun --dev tap6
+    ifconfig tap6 up
+    sleep 1
+    echo "Conectando no servidor do grid local. Arquivo de log: /opt/gridlocal/vpn.log"
+    openvpn --config /opt/gridlocal/vpn-cliente-grid.conf --tls-client > /opt/gridlocal/vpn.log &
+    sleep 8
+    echo "Levantando maquina virtual a partir de /opt/gridlocal/gridnode.xml."
+    virsh create /opt/gridlocal/gridnode.xml 
+    ;;
+  stop)
+    echo "Desligando maquina virtual do grid local."
+    virsh destroy $(cat /opt/gridlocal/host)
+    echo "Fechando a conexao vpn com o servidor do grid local."
+    kill $(ps aux|grep vpn-cliente-gri[d]|awk '{print $2}')
+    echo "Desligando interface tap6"
+    ifconfig tap6 down
+    openvpn --rmtun --dev tap6
+    ;;
+  status)
+    echo -----------
+    echo "Verificando a existencia da interface tap6"
+    ifconfig|grep tap6
+    echo -----------
+    echo "PID da conexao:" $(ps aux|grep vpn-cliente-gri[d]|awk '{print $2}')
+    echo "Ultimas linhas do arquivo de log:"
+    tail -n 4 /opt/gridlocal/vpn.log
+    echo -----------
+    virsh list
+    echo -----------
+    ;;
+  restart)
+    echo "Desligando maquina virtual do grid local."
+    virsh destroy $(cat /opt/gridlocal/host)
+    echo "Fechando a conexao vpn com o servidor do grid local."
+    kill $(ps aux|grep vpn-cliente-gri[d]|awk '{print $2}')
+    echo "Desligando interface tap6"
+    ifconfig tap6 down
+    openvpn --rmtun --dev tap6
+    sleep 2
+    echo "Criando a interface tap6 "
+    openvpn --mktun --dev tap6
+    ifconfig tap6 up
+    sleep 1
+    echo "Conectando no servidor do grid local. Arquivo de log: /opt/gridlocal/vpn.log"
+    openvpn --config /opt/gridlocal/vpn-cliente-grid.conf --tls-client > /opt/gridlocal/vpn.log &
+    sleep 8
+    echo "Levantando maquina virtual a partir de /opt/gridlocal/gridnode.xml."
+    virsh create /opt/gridlocal/gridnode.xml 
+    ;;
+  *)
+    echo "Uso: /etc/init.d/gridlocal {start|stop|status|restart}"
+    exit 1
+    ;;
+esac
+
+exit 0
