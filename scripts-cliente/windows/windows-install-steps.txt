@@ -2,43 +2,44 @@
  Gridlocal Windows(R) instalation steps:
  ********* ********** *********** ******
 
+ 0) 
+
  1) Download the zip/tgz gridlocal file;
 
- 2) Install VBoxVmService (http://sourceforge.net/projects/vboxvmservice/), openvpn, and virtualbox; (use 4.3.34 version http://download.virtualbox.org/virtualbox/4.3.34/VirtualBox-4.3.34-104062-Win.exe, last version for openvpn: https://swupdate.openvpn.org/community/releases/openvpn-install-2.3.10-I601-x86_64.exe )
+ 2) Install pyqt4, openvpn, and virtualbox; (use 4.3.34 version http://download.virtualbox.org/virtualbox/4.3.34/VirtualBox-4.3.34-104062-Win.exe, last version for openvpn: https://swupdate.openvpn.org/community/releases/openvpn-install-2.3.10-I601-x86_64.exe )
 
  3) Change the "TAP-Windows Adapter V9" (or something like that) tap adapter name to tapgrid.
 Control painel -> change network interface parameters
 
  4) Create a bridge using tapgrid and "VirtualBox Host-Only Network". Select the interfaces -> right mouse button -> create bridge;
 
- 5) Create the %programfiles%\gridlocal;
+ 5) Create the %programfiles%\gridlan;
 
- 6) Copy the files: node and script-just-vm.bat to %programfiles%\gridlocal;
+ 6) Copy the files: hostname.txt, hb_gridlan.xml, heartbeat_gridlan.py, node and script-just-vm.bat to %programfiles%\gridlan;
 
  7) Copy the file vpn-cliente.ovpn to %programfiles%\OpenVPN\config
 
- 8) Create the %programfiles%\gridlocal\keys;
+ 8) Create the folder %programfiles%\gridlan\keys;
 
- 9) Edit the node xml file accordingly to your hardware:
+ 9) Edit the "node" xml file accordingly to your hardware:
 
   CPU count=" "
   Memory RAMSize=" "
   MACAddress in Adapter Slot="0", put the mac from your nic that connects to the cluster server 
   (command ipconfig/all to see your MACAddr);
 
- 10) Edit the vpn-cliente.ovpn (in the %programfiles%\OpenVPN\config folder) file. Change "win1" name for the node's name in the gridlocal;
+ 10) Edit the vpn-cliente.ovpn (in the %programfiles%\OpenVPN\config folder) file. Change "win1" name for the node's name in the gridlan;
 
- 11) Setting up the OpenVPN service: Open Control Panel, look for Administrative Tools -> Services. Search for OpenVPN Service, right-click
-on it -> Properties. Settings are: Start Up: Automatic, Log on: Log on as: Local System Account.
+ 11) Put the node name in %programfiles%\gridlan\hostname.txt too.
 
  12) Run the add-node.py in the server, choose a hostname for the node
 and use the mac addres of the node xml file.
 
   python add-node.py hostname mac
 
- 13) Copy the file with the vpn keys from the server. Put the keys in %programfiles%\gridlocal\Keys;
+ 13) Copy the file with the vpn keys from the server. Put the keys in %programfiles%\gridlan\Keys;
 
- 14) Start the node xml file with VirtualBox one time;
+ 14) Start the node xml file with VirtualBox one time (adm account);
 
  15) Turn off the VirtualBox's dhcp server. File -> Preferences -> Network -> Host-only Networks -> Edit (host-only network)
 
@@ -55,17 +56,4 @@ and use the mac addres of the node xml file.
 Right-click on the Network Bridge where tapgrid is on -> Properties, Select "Internet Protocol Version 4" -> Properties, Use the following
 IP address: IP address: 192.168.0.100 Subnetmask 255.255.255.0. Other fields may be empty. (0.0.0.0 and 0.0.0.0 can also work)
 
- 17) Copy VboxVMService.ini to the C:\VMS folder;
-
- 18) Run the task scheduler.
-
-  Create a task
-
-  -> Run whether user is logged on or not
-  -> Trigger tab, New -> Begin the task: At startup
-  -> Action tab: New, Action: Start a program, Program/script: %programfiles%\gridlocal\script-just-vm.bat
-  -> Settings tab: Uncheck "Stop the task if it runs longers than"
-
-#  Run "Edit Group Policy"
-#
-#  -> Windows settings -> Scripts (startup/shutdown) -> Startup (set the script c:\gridlocal\script-gridlocal.bat)
+ 17) Open Task Scheduler as administrator and import the hd_gridlan.xml task file. The task consider the python is in C:\Python27\python.exe, change accordingly.

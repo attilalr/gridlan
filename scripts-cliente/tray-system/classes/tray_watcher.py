@@ -37,9 +37,8 @@ class TrayWatcher(QtGui.QSystemTrayIcon):
 #        self.menu.addSeparator()
 
         icon = QtGui.QIcon.fromTheme("system-shutdown-symbolic")
-        quit_action = self.menu.addAction(icon,'Fechar')
+        quit_action = self.menu.addAction(icon,'Close')
         quit_action.triggered.connect(QtGui.qApp.quit)
-
         #menu.clear() 
 
         #self.activated.connect(self.activatedEvent)

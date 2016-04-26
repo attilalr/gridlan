@@ -35,7 +35,10 @@ class SystemInfo(QtGui.QFrame):
                                    'vm': script_dir + '/vm.sh'}
 
         ### Guest name 
-        self.server_name = os.popen("cat /opt/gridlocal/host").read()[:-1]  # TODO: Add your handler to get hostname.
+	if 'win' in sys.platform.lower():
+		self.server_name=os.popen('more "%programfiles%\gridlocal\hostname.txt"').read()[:-1]
+	if 'linux' in sys.platform.lower():
+		self.server_name=os.popen("cat /opt/gridlocal/host").read()[:-1]
         self.image_dir = image_dir
         self.menu = menu
 
@@ -45,7 +48,9 @@ class SystemInfo(QtGui.QFrame):
         for key, value in self.__script_names.iteritems():
             self.__script_names[key] = value.decode(locale.getpreferredencoding())
 
-        self.__update_interval = 0
+	self.running_processes=0
+
+        self.__update_interval = 100
         self.__timer_id = None
         self.__window_size = QtCore.QSize(220, 130)
 
@@ -112,9 +117,24 @@ class SystemInfo(QtGui.QFrame):
           return 'off'
 
     def jobsStatus(self):
-        running_process = randint(0, 40)  # TODO: Remove this magic states.
-        self.running_processes = str(running_process)
-        return running_process  # TODO: Add your handler to get running jobs
+
+	flag=0
+	running_process=0
+
+	try:
+		c = zerorpc.Client()
+		c.connect('tcp::/143.54.155.233:4242')
+		c.chk_stats(self.server_name)
+		flag=1
+	except:
+		flag=0
+
+	if (flag==1):
+	        running_process = int(c.chk_stats(self.server_name))  
+        	self.running_processes = c.chk_stats(self.server_name)
+		c.close()
+
+        return running_process 
 
     def checkAllStatus(self):
         nt_status = self.networkStatus()
@@ -180,27 +200,32 @@ class SystemInfo(QtGui.QFrame):
         icon = QtGui.QIcon.fromTheme("emblem-synchronizing-symbolic")
         self.menu.addAction(icon,'Ping Servidor: '+self.pingserver())
         icon = QtGui.QIcon.fromTheme("emblem-shared-symbolic")
-        self.menu.addAction(icon,'VPN: '+self.networkStatus())
-        icon = QtGui.QIcon.fromTheme("preferences-other-symbolic")
-        self.menu.addAction(icon,'VM: '+self.vmStatus())
-        icon = QtGui.QIcon.fromTheme("utilities-system-monitor-symbolic")
-        self.menu.addAction(icon,'Processos: '+self.running_processes)
+#        self.menu.addAction(icon,'VPN: '+self.networkStatus())
+#        icon = QtGui.QIcon.fromTheme("preferences-other-symbolic")
+#        self.menu.addAction(icon,'VM: '+self.vmStatus())
+#        icon = QtGui.QIcon.fromTheme("utilities-system-monitor-symbolic")
+        self.menu.addAction(icon,'Processos: '+str(self.running_processes))
 
-        self.menu.addSeparator()
+#        self.menu.addSeparator()
 
-        if (self.networkStatus()=='off' or self.vmStatus()=='off'):
-          icon = QtGui.QIcon.fromTheme("view-refresh-symbolic")
-          restart_action = self.menu.addAction(icon,'Reiniciar servico')
-          self.menu.addSeparator()
+#        if (self.networkStatus()=='off' or self.vmStatus()=='off'):
+#          icon = QtGui.QIcon.fromTheme("view-refresh-symbolic")
+#          restart_action = self.menu.addAction(icon,'Reiniciar servico')
+#          self.menu.addSeparator()
 #          restart_action.triggered.connect(self.restartservice)
-          restart_action.triggered.connect(self.somethingDown)
+#          restart_action.triggered.connect(self.somethingDown)
 
         icon = QtGui.QIcon.fromTheme("system-shutdown-symbolic")
         quit_action = self.menu.addAction(icon,'Fechar')
         quit_action.triggered.connect(QtGui.qApp.quit)
 
         self.__window = None
-        icon_name = self.image_dir + '/icon2.png'
+
+        if 'win' in sys.platform.lower():
+          icon_name = self.image_dir + '\\icon2.png'
+        if 'linux' in sys.platform.lower():
+          icon_name = self.image_dir + '//icon2.png'
+        print icon_name
         icon_name = icon_name.decode(locale.getpreferredencoding())
 
 
@@ -208,9 +233,16 @@ class SystemInfo(QtGui.QFrame):
         subprocess.call("gksudo /etc/init.d/gridlocal restart -g --sudo-mode -d --message 'Digite a sua senha sudo para reiniciar o servico Grilocal'", shell=True, executable='/bin/bash')
 
     def pingserver(self,parent=None):
-        ping = os.popen("ping -q -n -c1 -W1 143.54.155.233").read()
-        if (ping.find('max')!=-1):
-          return 'ok'
-        else:
-          return 'fail'
+	if 'win' in sys.platform.lower():
+		ping = os.popen('ping -n 1 -w 1000 143.54.155.233').read()
+		if ping.count('100%') == 1:
+			return 'fail'
+		if ping.count('100%') == 0:
+			return 'ok'
+	if 'linux' in sys.platform.lower():
+	        ping = os.popen("ping -q -n -c1 -W1 143.54.155.233").read()
+	        if (ping.find('max')!=-1):
+	          return 'ok'
+	        else:
+	          return 'fail'
         

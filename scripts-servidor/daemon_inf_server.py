@@ -4,11 +4,15 @@ class glserver:
   def __init__(self,nodesfile):
     self.nodesfile=nodesfile
 
+  def chk_conn():
+    return 'connected'
+
   def chk_load(self, name):
     try:
       file=open(self.nodesfile,'r')
     except:
       return "error opening file."
+
     linha=file.readline()
     while(linha):
       if name.lower() in linha.split():
@@ -35,16 +39,18 @@ def start_server(nodesfile):
 
 def eternal_loop(nodesfile):
   # sleep for a interval and gather information after that
-  for i in range(100):
-    print "main loop: "+str(i)
+  #for i in range(100):
+  while(1):
+    print "main loop "
     update_nodes_stats(nodesfile)
     time.sleep(100)
 
 def update_nodes_stats(nodesfile):
   # scan the /etc/hosts
-  hosts=os.popen("cat /etc/hosts|grep .gridlocalnet|awk {'print $3'}").read().split()
+  hosts=os.popen("cat /etc/hosts|grep .gridlan|awk {'print $3'}").read().split()
 
-  file=open(nodesfile,'w')
+  string=''
+
   for hostname in hosts:
     # checar se esta on
     if 'ttl=64' in os.popen('ping -c1 '+hostname.lower()).read():
@@ -53,18 +59,24 @@ def update_nodes_stats(nodesfile):
       status='off'
     # checar quantos processos
     if status=='on':
-      njobs=os.popen('rsh '+hostname.lower+' ps axr|grep -v "ps axr"|wc -l').read()[:-1]
+      njobs=os.popen('rsh '+hostname.lower()+' ps axr|grep -v "ps axr"|wc -l').read()[:-1]
     else:
       njobs=0
-
     # write
-    file.write(hostname.lower()+' '+status+' '+str(njobs)+'\n')
-  file.close()
+    string=string+hostname.lower()+' '+status+' '+str(njobs)+'\n'
+      
+  try: 
+    file=open(nodesfile,'w')
+    file.write(string)
+    file.close()
+  except:
+    print "error opening nodesfile for writing."
+      
 
 
 ###### MAIN #####################################
 
-nodesfile='/home/attila/nodes.status'
+nodesfile='/opt/gridlan/nodes.status'
 
 jobs=list()
 #start main loop
