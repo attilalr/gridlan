@@ -1,10 +1,12 @@
 import zerorpc, os, time, multiprocessing
 
+port=4242
+
 class glserver:
   def __init__(self,nodesfile):
     self.nodesfile=nodesfile
 
-  def chk_conn():
+  def chk_conn(self):
     return 'connected'
 
   def chk_load(self, name):
@@ -29,12 +31,13 @@ class glserver:
     while(linha):
       if name.lower() in linha.split():
         return linha.split()[1]
+        print linha.split()[1]
       linha=file.readline()
     return "Error - hostname not found."
 
 def start_server(nodesfile):
   s = zerorpc.Server(glserver(nodesfile))
-  s.bind("tcp://0.0.0.0:4242")
+  s.bind("tcp://0.0.0.0:"+str(port))
   s.run()
 
 def eternal_loop(nodesfile):
