@@ -93,7 +93,7 @@ if (answer==''): # Se a resposta for sim
     sys.exit(0)
 
   # definir a linha para ser incluida nos arquivos, ip\t hostname.gridnet\t hostname
-  linha = novoip+"\t"+hostname+".gridnet\t"+hostname+"\n"
+  linha = novoip+"\t"+hostname+".gridlan\t"+hostname+"\n"
 
   try:
     with open("/etc/hosts", "a") as hostsfile:

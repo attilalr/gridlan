@@ -67,6 +67,8 @@ def update_nodes_stats(nodesfile):
       njobs=0
     # write
     string=string+hostname.lower()+' '+status+' '+str(njobs)+'\n'
+
+  print string
       
   try: 
     file=open(nodesfile,'w')
