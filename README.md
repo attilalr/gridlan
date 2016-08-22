@@ -1,2 +1,2 @@
-# localgrid
-Local Grid project
+# Gridlan
+Gridlan project
