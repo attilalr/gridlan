@@ -34,8 +34,8 @@ while (1):
     gridlocal.instalarscriptservico() # em /etc/init.d e nos rc's
     gridlocal.criarpastainstalacao() # /opt/gridlocal/keys
     gridlocal.instalarconfvpn() # em /opt/gridlocal
-# currently the local disks arent used
-#    gridlocal.instaladiscovm() # em /var/lib/libvirt/images
+#   currently the local disks arent used
+#   gridlocal.instaladiscovm() # em /var/lib/libvirt/images
     gridlocal.instalarxml() # em /opt/gridlocal
 
 

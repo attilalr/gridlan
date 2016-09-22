@@ -1,16 +1,19 @@
 import zerorpc, os, time, datetime
 
+connection='tcp://server_ip:4242'
+vbox_interface='VirtualBox Host-Only Ethernet Adapter #3'
+
 def restart(prog_files_path):
   os.system('taskkill /F /IM vboxheadless.exe')
   os.system('net stop openvpnservice')
   os.system('netsh interface set interface name="Gridlan Bridge" admin=disable')
   os.system('netsh interface set interface name="Gridlan Bridge" admin=enable')
   os.system('net start openvpnservice')
-  os.system('cd "'+prog_files_path+'\\oracle\\virtualbox" && vboxmanage dhcpserver remove --ifname "VirtualBox Host-Only Ethernet Adapter #3" & vboxmanage startvm node --type headless')
+  os.system('cd "'+prog_files_path+'\\oracle\\virtualbox" && vboxmanage dhcpserver remove --ifname "'+vbox_interface+'" & vboxmanage startvm node --type headless')
 
 ##### MAIN #####################################
 
-RESTART=0 # Option to make the script restart the system
+RESTART=1 # Option to make the script restart the system, 0 is for log test purpose
 
 if 'PROGRAMW6432' in os.environ:
   program_files_path=os.environ['PROGRAMW6432']
@@ -42,7 +45,7 @@ except:
 c = zerorpc.Client()
 
 try:
-  c.connect("tcp://143.54.155.233:4242")
+  c.connect(connection)
   log("connected")
   if c.chk_stats(hostname)=='off':
     log("running restart script!")
