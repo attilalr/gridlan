@@ -6,7 +6,7 @@ try:
   import psutil
 except:
   print
-  print " Para a execucao do script instale o pacote python-psutil."
+  print " Needs python-psutil package."
   print
   sys.exit(0)
 
@@ -28,15 +28,15 @@ class instalation:
   def showmenu(self):
     print
     print " *********************************************************************************"
-    print " Script para customizacao dos recursos disponiveis para o grid local e instalacao."
+    print " Configuring the Gridlan node."
     print
-    print " Opcoes:"
+    print " Options:"
     if (self.configurado=='0'):
-      print " 1) Customizacao dos recursos a serem disponibilizados para o grid local;"
+      print " 1) Configure the resources for the Gridlan node."
     if (self.configurado=='1'):
-      print " 1) Customizacao dos recursos a serem disponibilizados para o grid local; *configuracoes a serem instaladas"
-    print " 2) Instalacao no sistema;"
-    print " 3) Sair."
+      print " 1) Configure the resources for the Gridlan node. *configuration ready for install"
+    print " 2) Instalation."
+    print " 3) Quit."
     print
     self.path = raw_input(" > ")
     if (self.path=='3'):
@@ -45,11 +45,12 @@ class instalation:
   def msgfinal(self,IPSERVIDOR,CONTATOEMAIL,host,macaddr):
     print
     print " *****"
-    print " O seu computador precisa agora ser registrado no servidor do grid ("+IPSERVIDOR+")."
+    print " The Gridlan node must be now registered in the server "+IPSERVIDOR+"."
     print " Para proceder com o registro, envie um email para "+CONTATOEMAIL+", com as seguinte informacoes:"
+    print " You can send the folowing information to the Gridlan admin:"
     print
-    print " Nome do host: "+host
-    print " end. mac: "+macaddr
+    print " hostname: "+host
+    print " mac addr.: "+macaddr
     print " *****"
 
   def checkuser(self):
@@ -57,7 +58,7 @@ class instalation:
     if (self.path=='2'):
       if (os.popen("whoami").read()[0:-1]!='root'):
         print
-        print " Usuario "+os.popen("whoami").read()[:-1]+", para utilizar esta opcao voce deve ter poderes de root."
+        print " Current user: "+os.popen("whoami").read()[:-1]+", you need root powers to install."
         print
         self.path='9' # o procedimento=9 serve para o script ir ate o fim sem executar nada e reiniciar em seguida
 
@@ -66,28 +67,28 @@ class instalation:
       if (os.popen("egrep '( vmx | svm )' /proc/cpuinfo").read()==''):
         print
         print " Este computador nao esta habilitado a rodar uma maquina virtual."
-        print " Antes de instalar o sistema habilite a virtualizacao na bios e/ou no sistema operacional."
-        print " Saindo do script."
+        print " Extensions vmx or svm not found. Check your BIOS configuration."
+        print " Finishing the script."
         print
         print sys.exit(0)
 
   def getmacaddr(self):  ## PEGAR END. MAC ###################################################################################################
-    iface = raw_input(" Digite a interface eth utilizada para conexao a rede ['enter' para eth0, 'list' para checar as interfaces disponiveis]: ")
+    iface = raw_input(" The script will need a mac address.\n Your network connection interface ['enter' for eth0, 'list' to list all the possibilities]: ")
     if (iface==''):
       iface='eth0'
     if (iface=='list'):
       print os.popen("/sbin/ifconfig |grep 'eth\|inet'").read()[0:-1]
-      iface = raw_input(" Digite a interface eth utilizada para conexao a rede: ")
+      iface = raw_input(" Network interface: ")
 
     self.macaddr = os.popen("/sbin/ifconfig |grep "+iface).read()[0:-1].split()[-1] # pega o ultimo campo da saida do comando
-    print " Endereco mac da interface "+iface+": "+self.macaddr
+    print " Mac address of interface "+iface+": "+self.macaddr
 
   def customizarxml(self):
     subprocess.call("cp "+self.dirname+"/gridnode.bak "+self.dirname+"/gridnode.xml", shell=True, executable='/bin/bash') # copiar o xml de trabalho
     #name: changename
     answer2='n'
     while (answer2=='n'):
-      answer = raw_input(" Digite o nome do computador a ser registrado no grid [enter para sugestao automatica]: ")
+      answer = raw_input(" Hostname to register on Gridlan [enter for automatic name]: ")
 
       if (answer == ''):
         host = os.popen("hostname").read()
@@ -96,7 +97,7 @@ class instalation:
       else:
         host=answer
       print
-      answer2 = raw_input(" O nome da maquina virtual e do computador do grid sera "+host+". Confirma? [enter/n]: ")
+      answer2 = raw_input(" The Gridlan node hostname will be "+host+". Confirm? [enter/n]: ")
       print
     self.host=host
     # modificando o xml
@@ -105,8 +106,8 @@ class instalation:
     # memory KiB: changememory
     answer = '1'
     while (int(answer) < 256):
-      answer = raw_input(" Quantidade de memoria ram maxima a ser disponibilizada [enter para a sugestao: "+str(int(psutil.TOTAL_PHYMEM)/(1024*1024*6)
-)+"MB (minimo de 256MB)]: ")
+      answer = raw_input(" Amount of RAM disponible to the Gridlan node (MB):  [enter for sugestion: "+str(int(psutil.TOTAL_PHYMEM)/(1024*1024*6)
+)+"MB (256MB minimum)]: ")
       if (answer==''): break
     # gravando no xml, deve ser em KiB
     if (answer==''):
@@ -129,7 +130,7 @@ class instalation:
       ncpus=int(psutil.NUM_CPUS)-1
     # modificando o xml
     subprocess.call("sed -i s/changencpu/"+str(ncpus)+"/g "+self.dirname+"/gridnode.xml", shell=True, executable='/bin/bash')
-    print " Alocando "+str(ncpus)+" ao grid local."
+    print " Alocating "+str(ncpus)+" to the VM."
 
     # mac: changemac
     # jah tenho o endereco mac do computador
@@ -148,27 +149,28 @@ class instalation:
 
   def instalarpacotes(self):
     ## PACOTES ##########################################################################################################
-    answer = raw_input(" Pressione enter para instalar os pacotes necessarios [enter/n]: ")
+    answer = raw_input(" Press enter to install the necessary packages [enter/n]: ")
     if (answer==''):
       if (self.distro=='debian' or self.distro=='Ubuntu'): # SWITCH CASE: DEBIAN/UBUNTU
         os.system("apt-get install "+self.listapacotes)
-      elif (self.distro=='centos' or self.distro=='redhat' or self.distro=='fedora'): #CENTOS
-        os.system("yum install "+self.listapacotes)
-      elif (self.distro=='SuSE'): #SUSE
-        os.system("yast --install "+self.listapacotes)
-      elif (self.distro=='gentoo'): #GENTOO
-        os.system("emerge "+self.listapacotes)
+# future distros
+#      elif (self.distro=='centos' or self.distro=='redhat' or self.distro=='fedora'): #CENTOS
+#        os.system("yum install "+self.listapacotes)
+#      elif (self.distro=='SuSE'): #SUSE
+#        os.system("yast --install "+self.listapacotes)
+#      elif (self.distro=='gentoo'): #GENTOO
+#        os.system("emerge "+self.listapacotes)
       else: 
-        print " Distribuicao "+self.distro+" nao suportada. "
-        print " Saindo do script."
+        print " Distribution "+self.distro+" not suported. "
+        print " Finishing the script."
         sys.exit(0)
     else:
-      print " Abortando instalacao de pacotes."
+      print " Aborting the packages instalation."
       print
 
   def instalarscriptservico(self):
     ## INTERFACE TAP ####################################################################################################
-    answer = raw_input(" Pressione enter para instalar o script de inicializacao gridlocal [enter/n]: ")
+    answer = raw_input(" Press enter to install the initialization script [enter/n]: ")
     if (answer==''):
       if (self.distro=='debian'): # DEBIAN
         # O 1o comando troca o requisito para a execucao do script gridlocal na inicializacao
@@ -180,20 +182,20 @@ class instalation:
         os.system("cp "+self.dirname+"/gridlocal /etc/init.d/")
         os.system("chmod 755 /etc/init.d/gridlocal")
         os.system("update-rc.d gridlocal defaults")
-      elif (self.distro=='centos' or self.distro=='redhat' or self.distro=='fedora'): #CENTOS
-        os.system("cp "+self.dirname+"/gridlocal /etc/init.d/")
-        os.system("chmod 755 /etc/init.d/gridlocal")
-        os.system("chkconfig --level 345 gridlocal on")
-      elif (self.distro=='SuSE'): #SUSE
-        os.system("cp "+self.dirname+"/gridlocal /etc/init.d/")
-        os.system("chmod 755 /etc/init.d/gridlocal")
-        os.system("insserv /etc/init.d/gridlocal")
-      elif (self.distro=='gentoo'): #GENTOO
-        pass
+#      elif (self.distro=='centos' or self.distro=='redhat' or self.distro=='fedora'): #CENTOS
+#        os.system("cp "+self.dirname+"/gridlocal /etc/init.d/")
+#        os.system("chmod 755 /etc/init.d/gridlocal")
+#        os.system("chkconfig --level 345 gridlocal on")
+#      elif (self.distro=='SuSE'): #SUSE
+#        os.system("cp "+self.dirname+"/gridlocal /etc/init.d/")
+#        os.system("chmod 755 /etc/init.d/gridlocal")
+#        os.system("insserv /etc/init.d/gridlocal")
+#      elif (self.distro=='gentoo'): #GENTOO
+#        pass
       else: 
-        print " Distribuicao "+self.distro+" nao suportada. "
+        print " Distro "+self.distro+" not suported. "
     else:
-      print " Instalacao de script de inicializacao."
+      print " Initialization script instalation."
       print
 
   def criarpastainstalacao(self):
@@ -211,14 +213,14 @@ class instalation:
   def instalarxml(self):
     if (self.configurado=='1'):
       print
-      print " Copiando o xml pronto para a pasta de configuracoes do gridlocal."
+      print " Copying xml file to the Gridlan configuration folder."
       print
       subprocess.call("cp "+self.dirname+"/gridnode.xml "+self.pastainstalacao, shell=True, executable='/bin/bash') 
       print " Criando arquivo "+self.pastainstalacao+"/host."
       os.system("echo "+self.host+" > "+self.pastainstalacao+"/host")
     else:
       print
-      print " Eh necessario configurar o xml com a opcao '1' primeiramente."
+      print " You must configure first, option 1."
       print
 
   def checkmodules(self): #checagem de modulos para a instalacao, kvm, tun...
@@ -231,15 +233,15 @@ class instalation:
       subprocess.call("modprobe tun", shell=True, executable='/bin/bash') 
       if (os.popen("test ! -c /dev/net/tun && echo 0 || echo 1").read()[0:-1]=='1'):
         subprocess.call("echo tun >> /etc/modules", shell=True, executable='/bin/bash')
-        print " Modulo tun adicionado ao arquivo /etc/modules"
+        print " tun module added to /etc/modules file."
       else:
         print
-        print " Nao eh possivel inicializar uma interface tap exigida pelo openvpn."
-        print " Saindo do script de instalacao."
+        print " Cannot start a tap interface!"
+        print " Exiting script."
         print
         print sys.exit(0)
     else:
-      print " Interface tun encontrada."
+      print " tun interface found."
     #kvm
     if (os.popen("lsmod|grep kv[m]").read()[0:-1]!=''):
       kvm='1'
@@ -252,21 +254,21 @@ class instalation:
       if (os.popen("lsmod|grep kv[m]").read()[0:-1]!=''):
         kvm='1'
         subprocess.call("echo kvm >> /etc/modules", shell=True, executable='/bin/bash')
-        print " Colocando o modulo kvm no arquivo /etc/modules."
+        print " Putting kvm module in /etc/modules."
         subprocess.call("modprobe kvm_intel", shell=True, executable='/bin/bash')
         if (os.popen("lsmod|grep kvm_inte[l]").read()[0:-1]!=''):
           kvmintel='1'
           subprocess.call("echo kvm_intel >> /etc/modules", shell=True, executable='/bin/bash')
-          print " Colocando o modulo kvm_intel no arquivo /etc/modules."
+          print " Putting kvm_intel module in /etc/modules."
         subprocess.call("modprobe kvm_amd", shell=True, executable='/bin/bash')
         if (os.popen("lsmod|grep kvm_am[d]").read()[0:-1]!=''):
           kvmamd='1'
           subprocess.call("echo kvm_amd >> /etc/modules", shell=True, executable='/bin/bash')
-          print " Colocando o modulo kvm_amd no arquivo /etc/modules."
+          print " Putting kvm_amd module in /etc/modules."
         if (kvmintel!='1' and kvmamd!='1'):
-          print " Nao consigo carregar o modulo kvm especifico do processador."
-          print " Saindo o script."
+          print " Cannot load kvm_intel or kvm_amd module."
+          print " Exiting script."
       else:
-        print " Nao consigo carregar o modulo kvm."
-        print " Saindo o script."
+        print " Cannot load kvm or kvm module."
+        print " Exiting script."
         sys.exit(0)
