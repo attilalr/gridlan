@@ -6,12 +6,16 @@
 
  2) Install pyqt4, openvpn, and virtualbox; (use 4.3.34 version http://download.virtualbox.org/virtualbox/4.3.34/VirtualBox-4.3.34-104062-Win.exe, last version for openvpn: https://swupdate.openvpn.org/community/releases/openvpn-install-2.3.10-I601-x86_64.exe )
 
+ #todo: teste virtualbox 5.1.6 and the backends.
+
 install git (https://github.com/git-for-windows/git/releases/download/v2.8.2.windows.1/Git-2.8.2-64-bit.exe)
 python 2.7.11
 
 c:\python2.7\python -m pip install cython
 c:\python2.7\python -m pip install git+git://github.com/msgpack/msgpack-python.git@9fe19cc4089467fff185399c659ffe72f2f52995
 c:\python2.7\python -m install zerorpc
+
+ (zerorpc is the mechanism to query if the nodes are on)
 
  3) Change the "TAP-Windows Adapter V9" (or something like that) tap adapter name to tapgrid.
 Control painel -> change network interface parameters
@@ -20,7 +24,7 @@ Control painel -> change network interface parameters
 
  * Rename the bridge to "Gridlan Bridge"
 
- 5) Create the %programfiles%\gridlan;
+ 5) Create the %programfiles%\gridlan folder;
 
  6) Copy the files: hostname.txt, hb_gridlan.xml, heartbeat_gridlan.py, node and script-just-vm.bat to %programfiles%\gridlan;
 
@@ -47,7 +51,7 @@ and use the mac addres of the node xml file.
  13) Copy the file with the vpn keys from the server. Put the keys in %programfiles%\gridlan\Keys;
 
  ************ 14) Start the node xml file with VirtualBox one time (adm account);
- 14) open a commando prompt in administration mode, run psexec -i -s -d CMD. In the new command prompt run:
+ 14) open a command prompt in administration mode, run psexec -i -s -d CMD. In the new command prompt run:
 "%programfiles%\oracle\virtualbox\vboxmanage.exe" registervm "%programfiles%\gridlan\node.vbox"
 
  15) Turn off the VirtualBox's dhcp server. File -> Preferences -> Network -> Host-only Networks -> Edit (host-only network)
@@ -66,3 +70,4 @@ Right-click on the Network Bridge where tapgrid is on -> Properties, Select "Int
 IP address: IP address: 192.168.0.100 Subnetmask 255.255.255.0 DEFAULT GW 192.168.0.1 Other fields may be empty. (0.0.0.0 and 0.0.0.0 can also work)
 
  17) Open Task Scheduler as administrator and import the hd_gridlan.xml task file. The task consider the python is in C:\Python27\python.exe, change accordingly.
+
