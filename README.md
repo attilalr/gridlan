@@ -1,5 +1,5 @@
 # Gridlan
-Gridlan project
+Gridlan project (https://arxiv.org/abs/1609.06978)
 
 These instructions for building a Gridlan are under construction.
 
